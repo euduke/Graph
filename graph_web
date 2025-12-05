@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>DSA Graph Master - Web Version</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Verdana", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #fdfdfd;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 320px;
+      background: #2c3e50;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sidebar h1 {
+      margin: 0 0 10px 0;
+      font-size: 26px;
+      text-align: center;
+    }
+
+    .group-label {
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 11px;
+      color: #bdc3c7;
+      font-weight: bold;
+    }
+
+    .btn-rounded {
+      margin: 3px 0;
+      width: 100%;
+      border: none;
+      border-radius: 20px;
+      height: 40px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    }
+
+    .btn-rounded:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-system { background: #e67e22; }
+    .btn-system:hover { background: #d35400; }
+
+    .btn-clear { background: #c0392b; }
+    .btn-clear:hover { background: #e74c3c; }
+
+    .btn-data { background: #8e44ad; }
+    .btn-data:hover { background: #9b59b6; }
+
+    .btn-file { background: #16a085; }
+    .btn-file:hover { background: #1abc9c; }
+
+    .btn-algo { background: #2980b9; }
+    .btn-algo:hover { background: #3498db; }
+
+    .btn-adv { background: #f39c12; }
+    .btn-adv:hover { background: #f1c40f; color: #2c3e50; }
+
+    #sidebar-footer {
+      margin-top: auto;
+      font-size: 11px;
+      color: #ecf0f1;
+      font-style: italic;
+    }
+
+    /* MAIN AREA */
+    #main {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #canvas-container {
+      flex: 1;
+      border: 1px solid #ddd;
+      background: white;
+      position: relative;
+    }
+
+    #graphCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #hint {
+      font-size: 11px;
+      color: #333;
+      font-style: italic;
+    }
+
+    /* DIALOG OVERLAY */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .dialog {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      min-width: 320px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .dialog h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .dialog label {
+      font-size: 13px;
+    }
+
+    .dialog input[type="number"],
+    .dialog input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
+
+    .dialog-footer {
+      text-align: right;
+      margin-top: 10px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .btn-ok {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-ok:hover {
+      background: #2ecc71;
+    }
+
+    .btn-cancel {
+      background: #e74c3c;
+      color: white;
+      margin-left: 8px;
+    }
+    .btn-cancel:hover {
+      background: #c0392b;
+    }
+
+    /* DATA TABS */
+    .tabs-header {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .tab-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #ecf0f1;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #3498db;
+      color: white;
+      border-color: #2980b9;
+    }
+
+    .tab-panel {
+      display: none;
+      font-size: 12px;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid #bdc3c7;
+      padding: 4px 6px;
+      text-align: center;
+    }
+
+    th {
+      background: #ecf0f1;
+    }
+
+    /* FILE INPUT HIDDEN */
+    #fileInput {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <h1>GRAPH</h1>
+
+    <div class="group-label">HỆ THỐNG</div>
+    <button class="btn-rounded btn-system" id="btnUndo">Hoàn Tác (Ctrl+Z)</button>
+    <button class="btn-rounded btn-clear" id="btnClear">Xóa Tất Cả</button>
+
+    <div class="group-label">DỮ LIỆU</div>
+    <button class="btn-rounded btn-file" id="btnSave">Lưu File (.json)</button>
+    <button class="btn-rounded btn-file" id="btnLoad">Mở File (.json)</button>
+    <input type="file" id="fileInput" accept=".json">
+    <button class="btn-rounded btn-data" id="btnShowData">Xem Bảng Dữ Liệu</button>
+
+    <div class="group-label">THUẬT TOÁN</div>
+    <button class="btn-rounded btn-algo" id="btnBFS">BFS (Loang)</button>
+    <button class="btn-rounded btn-algo" id="btnDFS">DFS (Sâu)</button>
+    <button class="btn-rounded btn-adv" id="btnAdv">Dijkstra / MST / Flow</button>
+
+    <div id="sidebar-footer">
+      🖱️ Chuột Trái: Tạo Node / Nối Cạnh<br>
+      🖱️ Kéo Node: Giữ Chuột Trái & Di Chuyển<br>
+      ⌨️ Ctrl+Z: Hoàn Tác
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="canvas-container">
+      <canvas id="graphCanvas"></canvas>
+    </div>
+    <div id="hint">
+      👉 Chuột Trái: Tạo Node | Chuột Trái 2 Node: Tạo Cạnh | Kéo Node: Giữ Chuột Trái | Ctrl+Z: Undo
+    </div>
+  </div>
+
+  <!-- DIALOG OVERLAY -->
+  <div class="overlay" id="edgeDialogOverlay">
+    <div class="dialog">
+      <h2>Thêm Cạnh</h2>
+      <div id="edgeDialogInfo"></div>
+      <label>Trọng số (số thực, vd: 1, 2.5, -3):</label>
+      <input type="number" step="0.01" id="edgeWeightInput" value="1">
+      <label>
+        <input type="checkbox" id="edgeDirectedInput">
+        Cạnh có hướng (mũi tên)
+      </label>
+      <div class="dialog-footer">
+        <button class="btn-small btn-ok" id="edgeDialogOk">OK</button>
+        <button class="btn-small btn-cancel" id="edgeDialogCancel">Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA DIALOG -->
+  <div class="overlay" id="dataDialogOverlay">
+    <div class="dialog">
+      <h2>Dữ Liệu Chi Tiết</h2>
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="edgesTab">DS Cạnh</button>
+        <button class="tab-btn" data-tab="matrixTab">Ma Trận Kề</button>
+        <button class="tab-btn" data-tab="adjTab">DS Kề (Chi tiết)</button>
+      </div>
+      <div id="edgesTab" class="tab-panel active"></div>
+      <div id="matrixTab" class="tab-panel"></div>
+      <div id="adjTab" class="tab-panel"></div>
+      <div class="dialog-footer">
+        <button class="btn-small btn-cancel" id="dataDialogClose">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADVANCED ALGO DIALOG -->
+  <div class="overlay" id="advDialogOverlay">
+    <div class="dialog">
+      <h2>Thuật Toán Nâng Cao</h2>
+      <button class="btn-rounded btn-algo" id="btnDijkstra" style="margin-top:5px;">Dijkstra</button>
+      <button class="btn-rounded btn-algo" id="btnPrim" style="margin-top:5px;">Prim (MST)</button>
+      <button class="btn-rounded btn-algo" id="btnKruskal" style="margin-top:5px;">Kruskal (MST)</button>
+      <button class="btn-rounded btn-algo" id="btnEuler" style="margin-top:5px;">Euler</button>
+      <button class="btn-rounded btn-algo" id="btnMaxFlow" style="margin-top:5px;">Max Flow</button>
+      <button class="btn-rounded btn-algo" id="btnBi" style="margin-top:5px;">Kiểm Tra 2 Phía</button>
+      <div class="dialog-footer">
+        <button class="btn-small btn-cancel" id="advDialogClose">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*******************************************************
+     * 1. MODEL (LOGIC & THUẬT TOÁN)
+     *******************************************************/
+    class Node {
+      constructor(id, x, y) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+      }
+    }
+
+    class Edge {
+      constructor(u, v, w = 1.0, directed = false) {
+        this.u = u;
+        this.v = v;
+        this.weight = w;
+        this.isDirected = directed;
+      }
+    }
+
+    class Graph {
+      constructor() {
+        this.nodes = [];
+        this.edges = [];
+      }
+
+      addNode(x, y) {
+        const id = this.nodes.length;
+        this.nodes.push(new Node(id, x, y));
+      }
+
+      addEdge(u, v, w, directed) {
+        // Cập nhật nếu cạnh đã tồn tại
+        for (const e of this.edges) {
+          if (e.u === u && e.v === v) {
+            e.weight = w;
+            e.isDirected = directed;
+            return;
+          }
+          if (!directed && !e.isDirected && e.u === v && e.v === u) {
+            e.weight = w;
+            return;
+          }
+        }
+        this.edges.push(new Edge(u, v, w, directed));
+      }
+
+      clear() {
+        this.nodes = [];
+        this.edges = [];
+      }
+
+      toDict() {
+        return {
+          nodes: this.nodes.map(n => ({ id: n.id, x: n.x, y: n.y })),
+          edges: this.edges.map(e => ({
+            u: e.u,
+            v: e.v,
+            w: e.weight,
+            d: e.isDirected
+          }))
+        };
+      }
+
+      fromDict(data) {
+        this.clear();
+        const nodes = [...data.nodes].sort((a, b) => a.id - b.id);
+        for (const n of nodes) {
+          this.nodes.push(new Node(n.id, n.x, n.y));
+        }
+        for (const e of data.edges) {
+          this.edges.push(new Edge(e.u, e.v, e.w, e.d || false));
+        }
+      }
+
+      getAdj(directed = false) {
+        const adj = {};
+        for (const n of this.nodes) adj[n.id] = [];
+        for (const e of this.edges) {
+          adj[e.u].push([e.v, e.weight]);
+          if (!directed && !e.isDirected) {
+            adj[e.v].push([e.u, e.weight]);
+          }
+        }
+        return adj;
+      }
+
+      getMatrix() {
+        const n = this.nodes.length;
+        const mat = Array.from({ length: n }, () => Array(n).fill(0));
+        for (const e of this.edges) {
+          mat[e.u][e.v] = e.weight;
+          if (!e.isDirected) mat[e.v][e.u] = e.weight;
+        }
+        return mat;
+      }
+
+      // BFS
+      bfs(s) {
+        if (s == null || s >= this.nodes.length) return [];
+        const adj = this.getAdj(false);
+        const vis = new Set();
+        const q = [];
+        const path = [];
+
+        vis.add(s);
+        q.push(s);
+
+        while (q.length) {
+          const u = q.shift();
+          path.push(u);
+          const neighbors = [...adj[u]].sort((a, b) => a[0] - b[0]);
+          for (const [v, w] of neighbors) {
+            if (!vis.has(v)) {
+              vis.add(v);
+              q.push(v);
+            }
+          }
+        }
+        return path;
+      }
+
+      // DFS
+      dfs(s) {
+        if (s == null || s >= this.nodes.length) return [];
+        const adj = this.getAdj(false);
+        const vis = new Set();
+        const path = [];
+
+        const dfsRec = (u) => {
+          vis.add(u);
+          path.push(u);
+          const neighbors = [...adj[u]].sort((a, b) => a[0] - b[0]);
+          for (const [v, w] of neighbors) {
+            if (!vis.has(v)) dfsRec(v);
+          }
+        };
+
+        dfsRec(s);
+        return path;
+      }
+
+      // Dijkstra
+      dijkstra(s, e) {
+        const adj = this.getAdj(false);
+        const n = this.nodes.length;
+        const dist = {};
+        const par = {};
+        for (let i = 0; i < n; i++) {
+          dist[i] = Infinity;
+          par[i] = null;
+        }
+        dist[s] = 0;
+        const pq = [];
+        pq.push([0, s]);
+
+        while (pq.length) {
+          // lấy min (đơn giản: sort)
+          pq.sort((a, b) => a[0] - b[0]);
+          const [d, u] = pq.shift();
+          if (d > dist[u]) continue;
+          if (u === e) break;
+
+          for (const [v, w] of adj[u]) {
+            if (dist[u] + w < dist[v]) {
+              dist[v] = dist[u] + w;
+              par[v] = u;
+              pq.push([dist[v], v]);
+            }
+          }
+        }
+
+        if (dist[e] === Infinity) return { path: null, dist: Infinity };
+        const path = [];
+        let cur = e;
+        while (cur != null) {
+          path.push(cur);
+          cur = par[cur];
+        }
+        path.reverse();
+        return { path, dist: dist[e] };
+      }
+
+      // Prim (MST) - vô hướng
+      prim() {
+        const n = this.nodes.length;
+        if (!n) return { edges: [], weight: 0 };
+
+        const adj = {};
+        for (const node of this.nodes) adj[node.id] = [];
+        for (const e of this.edges) {
+          adj[e.u].push([e.v, e.weight]);
+          adj[e.v].push([e.u, e.weight]);
+        }
+
+        const visited = new Set([0]);
+        const pq = [];
+        const mstEdges = [];
+        let totalWeight = 0;
+
+        for (const [v, w] of adj[0]) {
+          pq.push([w, 0, v]);
+        }
+
+        while (pq.length && visited.size < n) {
+          pq.sort((a, b) => a[0] - b[0]);
+          const [w, u, v] = pq.shift();
+          if (visited.has(v)) continue;
+          visited.add(v);
+          mstEdges.push(new Edge(u, v, w, false));
+          totalWeight += w;
+          for (const [nv, nw] of adj[v]) {
+            if (!visited.has(nv)) pq.push([nw, v, nv]);
+          }
+        }
+        return { edges: mstEdges, weight: totalWeight };
+      }
+
+      // Kruskal (MST)
+      kruskal() {
+        const n = this.nodes.length;
+        const parent = [];
+        for (let i = 0; i < n; i++) parent[i] = i;
+
+        const find = (x) => {
+          if (parent[x] === x) return x;
+          parent[x] = find(parent[x]);
+          return parent[x];
+        };
+
+        const union = (a, b) => {
+          const ra = find(a), rb = find(b);
+          if (ra !== rb) {
+            parent[ra] = rb;
+            return true;
+          }
+          return false;
+        };
+
+        const sorted = [...this.edges].sort((a, b) => a.weight - b.weight);
+        const mst = [];
+        let totalWeight = 0;
+
+        for (const e of sorted) {
+          if (union(e.u, e.v)) {
+            mst.push(new Edge(e.u, e.v, e.weight, false));
+            totalWeight += e.weight;
+          }
+        }
+
+        return { edges: mst, weight: totalWeight };
+      }
+
+      // Bipartite Check
+      checkBipartite() {
+        if (!this.nodes.length) return { ok: false, colors: {} };
+
+        const adj = {};
+        for (const n of this.nodes) adj[n.id] = [];
+        for (const e of this.edges) {
+          adj[e.u].push(e.v);
+          adj[e.v].push(e.u);
+        }
+
+        const color = {};
+        for (let i = 0; i < this.nodes.length; i++) {
+          if (color[i] == null) {
+            color[i] = 0;
+            const q = [i];
+            while (q.length) {
+              const u = q.shift();
+              for (const v of adj[u]) {
+                if (color[v] == null) {
+                  color[v] = 1 - color[u];
+                  q.push(v);
+                } else if (color[v] === color[u]) {
+                  return { ok: false, colors: {} };
+                }
+              }
+            }
+          }
+        }
+        return { ok: true, colors: color };
+      }
+
+      // Hierholzer (Euler)
+      hierholzer() {
+        const adj = {};
+        for (const e of this.edges) {
+          if (!adj[e.u]) adj[e.u] = [];
+          adj[e.u].push(e.v);
+          if (!e.isDirected) {
+            if (!adj[e.v]) adj[e.v] = [];
+            adj[e.v].push(e.u);
+          }
+        }
+        const keys = Object.keys(adj);
+        if (!keys.length) return null;
+
+        const tempAdj = {};
+        for (const k in adj) {
+          tempAdj[k] = [...adj[k]];
+        }
+
+        const stack = [];
+        const path = [];
+        let curr = parseInt(keys[0], 10);
+        stack.push(curr);
+
+        while (stack.length) {
+          const v = stack[stack.length - 1];
+          if (tempAdj[v] && tempAdj[v].length) {
+            const u = tempAdj[v].pop();
+
+            // nếu vô hướng: xóa cạnh ngược
+            const edge = this.edges.find(
+              e =>
+                ((e.u === u && e.v === v) || (e.u === v && e.v === u))
+            );
+            const isDir = edge ? edge.isDirected : false;
+
+            if (!isDir && tempAdj[u]) {
+              const idx = tempAdj[u].indexOf(v);
+              if (idx !== -1) tempAdj[u].splice(idx, 1);
+            }
+            stack.push(u);
+          } else {
+            path.push(stack.pop());
+          }
+        }
+        return path.reverse();
+      }
+
+      // Ford-Fulkerson (Max Flow)
+      fordFulkerson(s, t) {
+        const n = this.nodes.length;
+        const cap = Array.from({ length: n }, () => Array(n).fill(0));
+
+        for (const e of this.edges) {
+          cap[e.u][e.v] = e.weight;
+          if (!e.isDirected) cap[e.v][e.u] = e.weight;
+        }
+
+        let maxFlow = 0;
+        while (true) {
+          const parent = Array(n).fill(-1);
+          parent[s] = -2;
+          let pathFlow = 0;
+          const q = [[s, Infinity]];
+
+          while (q.length) {
+            const [u, flow] = q.shift();
+            for (let v = 0; v < n; v++) {
+              if (parent[v] === -1 && cap[u][v] > 0) {
+                parent[v] = u;
+                const newFlow = Math.min(flow, cap[u][v]);
+                if (v === t) {
+                  pathFlow = newFlow;
+                  break;
+                }
+                q.push([v, newFlow]);
+              }
+            }
+            if (pathFlow > 0) break;
+          }
+
+          if (pathFlow === 0) break;
+          maxFlow += pathFlow;
+
+          let cur = t;
+          while (cur !== s) {
+            const p = parent[cur];
+            cap[p][cur] -= pathFlow;
+            cap[cur][p] += pathFlow;
+            cur = p;
+          }
+        }
+
+        return maxFlow;
+      }
+    }
+
+    /*******************************************************
+     * 2. UI + VẼ CANVAS
+     *******************************************************/
+    const canvas = document.getElementById("graphCanvas");
+    const ctx = canvas.getContext("2d");
+    const graph = new Graph();
+
+    let historyStack = [];
+    const NODE_RADIUS = 25;
+
+    let selectedNode = null;
+    let draggingNode = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    // highlight state
+    let highlightNodes = new Map(); // id -> color
+    let highlightEdges = [];        // list of {u,v,color}
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      drawGraph();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function saveState() {
+      const state = JSON.stringify(graph.toDict());
+      historyStack.push(state);
+      if (historyStack.length > 20) historyStack.shift();
+    }
+
+    function undo() {
+      if (!historyStack.length) {
+        alert("Không còn thao tác nào để quay lại!");
+        return;
+      }
+      const last = historyStack.pop();
+      graph.fromDict(JSON.parse(last));
+      selectedNode = null;
+      draggingNode = null;
+      highlightNodes.clear();
+      highlightEdges = [];
+      drawGraph();
+    }
+
+    function clearGraph() {
+      saveState();
+      graph.clear();
+      selectedNode = null;
+      draggingNode = null;
+      highlightNodes.clear();
+      highlightEdges = [];
+      drawGraph();
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    function findNodeAt(x, y) {
+      for (const n of graph.nodes) {
+        const dx = n.x - x;
+        const dy = n.y - y;
+        if (Math.hypot(dx, dy) <= NODE_RADIUS + 5) {
+          return n.id;
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener("mousedown", (evt) => {
+      if (evt.button !== 0) return; // chỉ chuột trái
+      const pos = getMousePos(evt);
+      const nid = findNodeAt(pos.x, pos.y);
+      if (nid != null) {
+        draggingNode = nid;
+        const n = graph.nodes[nid];
+        dragOffsetX = pos.x - n.x;
+        dragOffsetY = pos.y - n.y;
+      } else {
+        // tạo node mới
+        saveState();
+        graph.addNode(pos.x, pos.y);
+        selectedNode = null;
+        drawGraph();
+      }
+    });
+
+    canvas.addEventListener("mousemove", (evt) => {
+      if (draggingNode != null) {
+        const pos = getMousePos(evt);
+        const n = graph.nodes[draggingNode];
+        n.x = pos.x - dragOffsetX;
+        n.y = pos.y - dragOffsetY;
+        drawGraph();
+      }
+    });
+
+    canvas.addEventListener("mouseup", (evt) => {
+      if (evt.button !== 0) return;
+      const pos = getMousePos(evt);
+      const nid = findNodeAt(pos.x, pos.y);
+
+      // nếu đang kéo thì dừng kéo
+      if (draggingNode != null) {
+        draggingNode = null;
+        return;
+      }
+
+      if (nid != null) {
+        if (selectedNode == null) {
+          selectedNode = nid;
+          drawGraph();
+        } else if (selectedNode !== nid) {
+          // mở dialog thêm cạnh
+          openEdgeDialog(selectedNode, nid);
+        } else {
+          selectedNode = null;
+          drawGraph();
+        }
+      } else {
+        selectedNode = null;
+        drawGraph();
+      }
+    });
+
+    function drawGraph() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // edges
+      for (const e of graph.edges) {
+        drawEdge(e);
+      }
+      // edge highlights
+      for (const he of highlightEdges) {
+        drawEdgeHighlight(he.u, he.v, he.color || "#9b59b6");
+      }
+
+      // nodes
+      for (const n of graph.nodes) {
+        drawNode(n);
+      }
+    }
+
+    function drawEdge(e) {
+      const u = graph.nodes[e.u];
+      const v = graph.nodes[e.v];
+
+      // tính điểm cuối (nếu có hướng thì trừ bán kính)
+      let x1 = u.x, y1 = u.y;
+      let x2 = v.x, y2 = v.y;
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+
+      if (len > 0 && e.isDirected) {
+        const ratio = (NODE_RADIUS + 5) / len;
+        x2 -= dx * ratio;
+        y2 -= dy * ratio;
+      }
+
+      ctx.strokeStyle = "#34495e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      if (e.isDirected) {
+        drawArrowHead(x1, y1, x2, y2);
+      }
+
+      // vẽ trọng số
+      const mx = (u.x + v.x) / 2;
+      const my = (u.y + v.y) / 2;
+
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#bdc3c7";
+      ctx.lineWidth = 1;
+      const w = 28, h = 20;
+      ctx.beginPath();
+      ctx.rect(mx - w / 2, my - h / 2, w, h);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#e74c3c";
+      ctx.font = "10px Verdana";
+      const wVal = e.weight;
+      let txt = "";
+      if (Number.isInteger(wVal)) txt = String(wVal);
+      else txt = String(wVal);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(txt, mx, my);
+    }
+
+    function drawArrowHead(x1, y1, x2, y2) {
+      const headlen = 14;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headlen * Math.cos(angle - Math.PI / 6),
+        y2 - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - headlen * Math.cos(angle + Math.PI / 6),
+        y2 - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fillStyle = "#34495e";
+      ctx.fill();
+    }
+
+    function drawEdgeHighlight(uId, vId, color) {
+      const u = graph.nodes[uId];
+      const v = graph.nodes[vId];
+      if (!u || !v) return;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(u.x, u.y);
+      ctx.lineTo(v.x, v.y);
+      ctx.stroke();
+    }
+
+    function drawNode(n) {
+      const isSel = n.id === selectedNode;
+      const col = highlightNodes.get(n.id) || (isSel ? "#f1c40f" : "#2ecc71");
+      const outlineWidth = isSel ? 4 : 2;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, NODE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+      ctx.lineWidth = outlineWidth;
+      ctx.strokeStyle = "#27ae60";
+      ctx.stroke();
+
+      ctx.fillStyle = "white";
+      ctx.font = "12px Verdana";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(n.id), n.x, n.y);
+    }
+
+    /*******************************************************
+     * 3. EDGE DIALOG (THÊM CẠNH)
+     *******************************************************/
+    const edgeOverlay = document.getElementById("edgeDialogOverlay");
+    const edgeInfo = document.getElementById("edgeDialogInfo");
+    const edgeWeightInput = document.getElementById("edgeWeightInput");
+    const edgeDirectedInput = document.getElementById("edgeDirectedInput");
+    const edgeDialogOk = document.getElementById("edgeDialogOk");
+    const edgeDialogCancel = document.getElementById("edgeDialogCancel");
+
+    let edgeDialogFrom = null;
+    let edgeDialogTo = null;
+
+    function openEdgeDialog(u, v) {
+      edgeDialogFrom = u;
+      edgeDialogTo = v;
+      edgeInfo.innerHTML = `<b>Kết nối:</b> ${u} ➜ ${v}`;
+      edgeWeightInput.value = "1";
+      edgeDirectedInput.checked = false;
+      edgeOverlay.style.display = "flex";
+      edgeWeightInput.focus();
+    }
+
+    function closeEdgeDialog() {
+      edgeOverlay.style.display = "none";
+      selectedNode = null;
+      drawGraph();
+    }
+
+    edgeDialogOk.addEventListener("click", () => {
+      const val = parseFloat(edgeWeightInput.value);
+      if (Number.isNaN(val)) {
+        alert("Vui lòng nhập số thực hợp lệ!");
+        return;
+      }
+      const dir = edgeDirectedInput.checked;
+      saveState();
+      graph.addEdge(edgeDialogFrom, edgeDialogTo, val, dir);
+      closeEdgeDialog();
+      drawGraph();
+    });
+
+    edgeDialogCancel.addEventListener("click", closeEdgeDialog);
+    edgeOverlay.addEventListener("click", (e) => {
+      if (e.target === edgeOverlay) closeEdgeDialog();
+    });
+
+    /*******************************************************
+     * 4. ANIMATION HELPERS
+     *******************************************************/
+    function animateNodePath(path, color = "#f1c40f", delay = 500, callback = null) {
+      highlightNodes.clear();
+      highlightEdges = [];
+      drawGraph();
+      if (!path || !path.length) {
+        if (callback) callback();
+        return;
+      }
+      path.forEach((nid, i) => {
+        setTimeout(() => {
+          highlightNodes.set(nid, color);
+          drawGraph();
+          if (i === path.length - 1 && callback) callback();
+        }, i * delay);
+      });
+    }
+
+    function animateEdges(edges, color = "#9b59b6", delay = 300, callback = null) {
+      highlightNodes.clear();
+      highlightEdges = [];
+      drawGraph();
+      edges.forEach((e, i) => {
+        setTimeout(() => {
+          highlightEdges.push({ u: e.u, v: e.v, color });
+          drawGraph();
+          if (i === edges.length - 1 && callback) callback();
+        }, i * delay);
+      });
+    }
+
+    /*******************************************************
+     * 5. THUẬT TOÁN UI HANDLERS
+     *******************************************************/
+    function runBFS() {
+      const s = prompt("BFS - Đỉnh bắt đầu:");
+      if (s == null) return;
+      const start = parseInt(s, 10);
+      if (Number.isNaN(start) || start < 0 || start >= graph.nodes.length) {
+        alert("Đỉnh không hợp lệ!");
+        return;
+      }
+      const path = graph.bfs(start);
+      animateNodePath(path, "#f1c40f", 400, () => {
+        alert("Thứ tự BFS: " + JSON.stringify(path));
+      });
+    }
+
+    function runDFS() {
+      const s = prompt("DFS - Đỉnh bắt đầu:");
+      if (s == null) return;
+      const start = parseInt(s, 10);
+      if (Number.isNaN(start) || start < 0 || start >= graph.nodes.length) {
+        alert("Đỉnh không hợp lệ!");
+        return;
+      }
+      const path = graph.dfs(start);
+      animateNodePath(path, "#f39c12", 400, () => {
+        alert("Thứ tự DFS: " + JSON.stringify(path));
+      });
+    }
+
+    function runDijkstra() {
+      // cảnh báo trọng số âm
+      const hasNegative = graph.edges.some(e => e.weight < 0);
+      if (hasNegative) {
+        alert("Dijkstra KHÔNG hoạt động với trọng số ÂM!\nVui lòng sửa trọng số hoặc dùng thuật toán khác.");
+        return;
+      }
+      const s = prompt("Dijkstra - Điểm đi:");
+      if (s == null) return;
+      const e = prompt("Dijkstra - Điểm đến:");
+      if (e == null) return;
+      const start = parseInt(s, 10);
+      const end = parseInt(e, 10);
+      if (
+        Number.isNaN(start) || start < 0 || start >= graph.nodes.length ||
+        Number.isNaN(end) || end < 0 || end >= graph.nodes.length
+      ) {
+        alert("Đỉnh không hợp lệ!");
+        return;
+      }
+      const res = graph.dijkstra(start, end);
+      if (!res.path) {
+        alert("Không tìm thấy đường đi!");
+        return;
+      }
+      animateNodePath(res.path, "#e74c3c", 450, () => {
+        alert("Tổng chi phí: " + res.dist + "\nLộ trình: " + JSON.stringify(res.path));
+      });
+    }
+
+    function runPrim() {
+      const hasDirected = graph.edges.some(e => e.isDirected);
+      if (hasDirected) {
+        alert("MST (Prim) chỉ áp dụng cho đồ thị VÔ HƯỚNG.\nĐồ thị hiện tại chứa cạnh có hướng!");
+        return;
+      }
+      const { edges, weight } = graph.prim();
+      animateEdges(edges, "#3498db", 300, () => {
+        alert("Prim MST - Tổng trọng số: " + weight);
+      });
+    }
+
+    function runKruskal() {
+      const hasDirected = graph.edges.some(e => e.isDirected);
+      if (hasDirected) {
+        alert("MST (Kruskal) chỉ áp dụng cho đồ thị VÔ HƯỚNG.\nĐồ thị hiện tại chứa cạnh có hướng!");
+        return;
+      }
+      const { edges, weight } = graph.kruskal();
+      animateEdges(edges, "#9b59b6", 300, () => {
+        alert("Kruskal MST - Tổng trọng số: " + weight);
+      });
+    }
+
+    function runEuler() {
+      const path = graph.hierholzer();
+      if (!path || !path.length) {
+        alert("Không có chu trình Euler (hoặc đồ thị trống).");
+        return;
+      }
+      animateNodePath(path, "#f1c40f", 400, () => {
+        alert("Chu trình Euler: " + JSON.stringify(path));
+      });
+    }
+
+    function runMaxFlow() {
+      const s = prompt("Max Flow - Nguồn (S):");
+      if (s == null) return;
+      const t = prompt("Max Flow - Đích (T):");
+      if (t == null) return;
+      const start = parseInt(s, 10);
+      const end = parseInt(t, 10);
+      if (
+        Number.isNaN(start) || start < 0 || start >= graph.nodes.length ||
+        Number.isNaN(end) || end < 0 || end >= graph.nodes.length
+      ) {
+        alert("Đỉnh không hợp lệ!");
+        return;
+      }
+      const flow = graph.fordFulkerson(start, end);
+      alert("Max Flow - Luồng cực đại: " + flow);
+    }
+
+    function runBi() {
+      const res = graph.checkBipartite();
+      if (!res.ok) {
+        alert("KHÔNG phải đồ thị 2 phía!");
+        return;
+      }
+      highlightNodes.clear();
+      for (const [nid, c] of Object.entries(res.colors)) {
+        highlightNodes.set(parseInt(nid, 10), c ? "#e74c3c" : "#3498db");
+      }
+      highlightEdges = [];
+      drawGraph();
+      alert("Là đồ thị 2 phía (bipartite).");
+    }
+
+    /*******************************************************
+     * 6. LƯU / MỞ FILE JSON
+     *******************************************************/
+    const btnSave = document.getElementById("btnSave");
+    const btnLoad = document.getElementById("btnLoad");
+    const fileInput = document.getElementById("fileInput");
+
+    btnSave.addEventListener("click", () => {
+      const dataStr = JSON.stringify(graph.toDict(), null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "graph_data.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert("Đã lưu JSON (tải về file).");
+    });
+
+    btnLoad.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (evt) => {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          saveState();
+          graph.fromDict(data);
+          selectedNode = null;
+          draggingNode = null;
+          highlightNodes.clear();
+          highlightEdges = [];
+          drawGraph();
+        } catch (err) {
+          console.error(err);
+          alert("File JSON không hợp lệ!");
+        }
+      };
+      reader.readAsText(file);
+      fileInput.value = "";
+    });
+
+    /*******************************************************
+     * 7. DIALOG DỮ LIỆU (DS cạnh, Ma trận, DS kề)
+     *******************************************************/
+    const dataOverlay = document.getElementById("dataDialogOverlay");
+    const dataClose = document.getElementById("dataDialogClose");
+    const edgesTabDiv = document.getElementById("edgesTab");
+    const matrixTabDiv = document.getElementById("matrixTab");
+    const adjTabDiv = document.getElementById("adjTab");
+
+    document.getElementById("btnShowData").addEventListener("click", () => {
+      refreshDataTabs();
+      dataOverlay.style.display = "flex";
+    });
+
+    dataOverlay.addEventListener("click", (e) => {
+      if (e.target === dataOverlay) dataOverlay.style.display = "none";
+    });
+    dataClose.addEventListener("click", () => {
+      dataOverlay.style.display = "none";
+    });
+
+    // tabs switch
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tabId = btn.dataset.tab;
+        document.querySelectorAll(".tab-panel").forEach(panel => {
+          if (panel.id === tabId) panel.classList.add("active");
+          else panel.classList.remove("active");
+        });
+      });
+    });
+
+    function refreshDataTabs() {
+      // DS Cạnh
+      let html = "<table><thead><tr><th>Nguồn (U)</th><th>Đích (V)</th><th>Trọng số (W)</th><th>Hướng</th></tr></thead><tbody>";
+      for (const e of graph.edges) {
+        html += `<tr>
+          <td>${e.u}</td>
+          <td>${e.v}</td>
+          <td>${e.weight}</td>
+          <td>${e.isDirected ? "Có" : "Không"}</td>
+        </tr>`;
+      }
+      html += "</tbody></table>";
+      edgesTabDiv.innerHTML = html;
+
+      // Ma trận kề
+      const n = graph.nodes.length;
+      const mat = graph.getMatrix();
+      let htmlMat = "<table><thead><tr><th></th>";
+      for (let i = 0; i < n; i++) {
+        htmlMat += `<th>${i}</th>`;
+      }
+      htmlMat += "</tr></thead><tbody>";
+      for (let i = 0; i < n; i++) {
+        htmlMat += `<tr><th>${i}</th>`;
+        for (let j = 0; j < n; j++) {
+          const x = mat[i][j];
+          let cell = ".";
+          if (x !== 0) cell = Number.isInteger(x) ? String(x) : String(x);
+          htmlMat += `<td>${cell}</td>`;
+        }
+        htmlMat += "</tr>";
+      }
+      htmlMat += "</tbody></table>";
+      matrixTabDiv.innerHTML = htmlMat;
+
+      // DS kề
+      const adj = graph.getAdj(false);
+      let txt = "";
+      for (const [k, v] of Object.entries(adj)) {
+        txt += `Node ${k} -> ${JSON.stringify(v)}\n`;
+      }
+      adjTabDiv.innerHTML = `<pre>${txt}</pre>`;
+    }
+
+    /*******************************************************
+     * 8. ADVANCED ALGO DIALOG
+     *******************************************************/
+    const advOverlay = document.getElementById("advDialogOverlay");
+    const advClose = document.getElementById("advDialogClose");
+
+    document.getElementById("btnAdv").addEventListener("click", () => {
+      advOverlay.style.display = "flex";
+    });
+
+    advOverlay.addEventListener("click", (e) => {
+      if (e.target === advOverlay) advOverlay.style.display = "none";
+    });
+    advClose.addEventListener("click", () => {
+      advOverlay.style.display = "none";
+    });
+
+    document.getElementById("btnDijkstra").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runDijkstra();
+    });
+    document.getElementById("btnPrim").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runPrim();
+    });
+    document.getElementById("btnKruskal").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runKruskal();
+    });
+    document.getElementById("btnEuler").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runEuler();
+    });
+    document.getElementById("btnMaxFlow").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runMaxFlow();
+    });
+    document.getElementById("btnBi").addEventListener("click", () => {
+      advOverlay.style.display = "none";
+      runBi();
+    });
+
+    /*******************************************************
+     * 9. SIDEBAR BUTTON HOOKS
+     *******************************************************/
+    document.getElementById("btnUndo").addEventListener("click", undo);
+    document.getElementById("btnClear").addEventListener("click", clearGraph);
+    document.getElementById("btnBFS").addEventListener("click", runBFS);
+    document.getElementById("btnDFS").addEventListener("click", runDFS);
+
+    // Ctrl+Z
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undo();
+      }
+    });
+
+    // Khởi vẽ
+    drawGraph();
+  </script>
+</body>
+</html>
